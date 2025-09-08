@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "598522144927",
+    "project_id": "invetarioapp",
+    "storage_bucket": "invetarioapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:598522144927:android:3e4c8b179f8b49b2ac5aaa",
+        "android_client_info": {
+          "package_name": "com.tuempresa.inventario"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtbhQ16mwMpT48ebCW5jHGEQYgYrrqAVU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
