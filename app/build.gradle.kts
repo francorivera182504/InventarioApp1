@@ -35,6 +35,8 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.7.1")
     implementation("androidx.compose.material3:material3:1.3.0")
     implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // Firebase (BOM para versiones consistentes)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
