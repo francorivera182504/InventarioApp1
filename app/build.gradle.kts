@@ -40,6 +40,8 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:4.3.3")
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
+    implementation("com.google.firebase:firebase-firestore:25.1.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // Firebase (BOM para versiones consistentes)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
