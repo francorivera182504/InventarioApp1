@@ -39,6 +39,14 @@ class MainActivity : ComponentActivity() {
                             onLoginSuccess = { navController.navigate("catalog") }
                         )
                     }
+                    composable("payment") {
+                        PaymentScreen(
+                            onBack = { navController.popBackStack() },
+                            cartViewModel = cartViewModel,
+                            navController = navController
+                        )
+
+                    }
 
                     // Pantalla de registro
                     composable("register") {
@@ -65,6 +73,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                    }
+                    composable("historial") {
+                        HistorialScreen(onBack = { navController.popBackStack() })
                     }
 
                     // Pantalla del mapa 📍

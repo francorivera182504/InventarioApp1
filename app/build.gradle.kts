@@ -42,7 +42,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
     implementation("com.google.firebase:firebase-firestore:25.1.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
-
+    implementation("androidx.compose.material:material-icons-extended")
     // Firebase (BOM para versiones consistentes)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
