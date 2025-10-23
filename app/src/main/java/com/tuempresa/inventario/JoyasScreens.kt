@@ -206,7 +206,7 @@ fun JoyaCard(joya: Joya, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(joya.nombre, fontWeight = FontWeight.Bold)
-            Text("${joya.precio}", color = MaterialTheme.colorScheme.primary)
+            Text("S/${joya.precio}", color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }

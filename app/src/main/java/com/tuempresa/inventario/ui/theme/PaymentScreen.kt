@@ -26,6 +26,8 @@ fun PaymentScreen(onBack: () -> Unit, cartViewModel: CartViewModel, navControlle
     var nombre by remember { mutableStateOf("") }
     var tarjeta by remember { mutableStateOf("") }
     var mensaje by remember { mutableStateOf("") }
+    var tipoEntrega by remember { mutableStateOf("Tienda") }
+    var direccion by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -66,11 +68,36 @@ fun PaymentScreen(onBack: () -> Unit, cartViewModel: CartViewModel, navControlle
             )
 
             Spacer(modifier = Modifier.height(24.dp))
+            Text("Tipo de entrega", fontWeight = FontWeight.Bold)
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                listOf("Tienda", "Delivery").forEach { tipo ->
+                    FilterChip(
+                        selected = tipoEntrega == tipo,
+                        onClick = { tipoEntrega = tipo },
+                        label = { Text(tipo) }
+                    )
+                }
+            }
+
+// 🔹 Si elige Delivery, mostrar campo de dirección
+            if (tipoEntrega == "Delivery") {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = direccion,
+                    onValueChange = { direccion = it },
+                    label = { Text("Dirección de entrega") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Button(
                 onClick = {
                     if (nombre.isBlank() || tarjeta.isBlank()) {
                         mensaje = "❌ Completa todos los campos"
+                        return@Button
+                    }
+                    if (tipoEntrega == "Delivery" && direccion.isBlank()) {
+                        mensaje = "❌ Ingresa la dirección de entrega"
                         return@Button
                     }
 
@@ -81,7 +108,9 @@ fun PaymentScreen(onBack: () -> Unit, cartViewModel: CartViewModel, navControlle
                                 mapOf("nombre" to it.nombre, "precio" to it.precio)
                             },
                             "total" to "S/${"%.2f".format(cartViewModel.total())}",
-                            "fecha" to SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+                            "fecha" to SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date()),
+                            "tipoEntrega" to tipoEntrega,
+                            "direccion" to if (tipoEntrega == "Delivery") direccion else "Recojo en tienda"
                         )
 
                         coroutineScope.launch {

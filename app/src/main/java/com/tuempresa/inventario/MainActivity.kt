@@ -75,7 +75,10 @@ class MainActivity : ComponentActivity() {
 
                     }
                     composable("historial") {
-                        HistorialScreen(onBack = { navController.popBackStack() })
+                        HistorialScreen(
+                            onBack = { navController.popBackStack() },
+                            navController = navController
+                        )
                     }
 
                     // Pantalla del mapa 📍
