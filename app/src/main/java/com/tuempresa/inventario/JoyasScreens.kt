@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.* // Importa todos los iconos de Filled
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,14 +16,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
 
-// Suponiendo que tienes un recurso R.drawable.ic_search o usas Icons.Filled.Search
-// Si no quieres depender de archivos locales para los iconos, usa el import anterior:
-// import androidx.compose.material.icons.filled.Search
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,21 +37,23 @@ fun JoyasCatalogScreen(
     val carrito = cartViewModel.carrito
     var busqueda by remember { mutableStateOf("") }
 
-    // 🔹 Cargar joyas desde Firestore
+    // 🔹 Cargar joyas desde Firestore (ahora con ID del documento)
     LaunchedEffect(Unit) {
         db.collection("joyas")
             .get()
             .addOnSuccessListener { result ->
-                joyas = result.map { it.toObject(Joya::class.java) }
+                joyas = result.map { doc ->
+                    val joya = doc.toObject(Joya::class.java)
+                    joya.copy(id = doc.id) // 🔥 Agregar el ID del documento
+                }
                 cargando = false
             }
             .addOnFailureListener {
                 cargando = false
-                // Aquí podrías mostrar un mensaje de error si la carga falla
             }
     }
 
-    // 🔍 Filtro de búsqueda dinámico
+    // 🔍 Filtro de búsqueda
     val joyasFiltradas = joyas.filter {
         it.nombre.contains(busqueda, ignoreCase = true) ||
                 it.descripcion.contains(busqueda, ignoreCase = true)
@@ -68,45 +68,42 @@ fun JoyasCatalogScreen(
                 )
             )
         },
-
-        // 🔸 Botones flotantes (Mapa 📍, Historial 🧾 y Carrito 🛒)
         floatingActionButton = {
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // 📍 Botón del mapa (FAB secundario)
+                // 📍 Mapa
                 SmallFloatingActionButton(
                     onClick = { navController.navigate("map") },
                     containerColor = MaterialTheme.colorScheme.secondary
                 ) {
                     Icon(
-                        Icons.Filled.LocationOn, // Usando Iconos estándar de Material
+                        Icons.Filled.LocationOn,
                         contentDescription = "Ubicación tienda",
                         tint = MaterialTheme.colorScheme.onSecondary
                     )
                 }
 
-                // 🧾 Botón del historial (FAB secundario)
+                // 🧾 Historial
                 SmallFloatingActionButton(
                     onClick = { navController.navigate("historial") },
                     containerColor = MaterialTheme.colorScheme.tertiary
                 ) {
                     Icon(
-                        Icons.Filled.History, // Usando Iconos estándar de Material
+                        Icons.Filled.History,
                         contentDescription = "Historial de compras",
                         tint = MaterialTheme.colorScheme.onTertiary
                     )
                 }
 
-                // 🛒 Botón principal del carrito (FAB con Notificación/Badge)
+                // 🛒 Carrito
                 BadgedBox(
                     badge = {
                         if (carrito.isNotEmpty()) {
                             Badge(
                                 containerColor = MaterialTheme.colorScheme.error,
                                 contentColor = MaterialTheme.colorScheme.onError,
-                                // Posicionar la insignia correctamente
                                 modifier = Modifier.offset(x = (-6).dp, y = (6).dp)
                             ) {
                                 Text("${carrito.size}")
@@ -117,10 +114,10 @@ fun JoyasCatalogScreen(
                     FloatingActionButton(
                         onClick = { mostrarCarrito = true },
                         containerColor = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(72.dp) // Hacemos el carrito más grande
+                        modifier = Modifier.size(72.dp)
                     ) {
                         Icon(
-                            Icons.Filled.ShoppingCart, // Usando Iconos estándar de Material
+                            Icons.Filled.ShoppingCart,
                             contentDescription = "Carrito",
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(36.dp)
@@ -133,7 +130,12 @@ fun JoyasCatalogScreen(
     ) { padding ->
 
         if (cargando) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
         } else {
@@ -148,10 +150,7 @@ fun JoyasCatalogScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     singleLine = true,
-                    leadingIcon = {
-                        // Usando Icons.Filled.Search para evitar depender de recursos locales
-                        Icon(Icons.Filled.Search, contentDescription = "Buscar")
-                    }
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Buscar") }
                 )
 
                 // 🔹 Catálogo filtrado
@@ -161,7 +160,7 @@ fun JoyasCatalogScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
                         .padding(horizontal = 12.dp)
-                        .fillMaxHeight() // Esto ayuda a que el Grid use el espacio restante
+                        .fillMaxHeight()
                 ) {
                     items(joyasFiltradas) { joya ->
                         JoyaCard(joya = joya, onClick = { onJoyaClick(joya) })
@@ -184,9 +183,7 @@ fun JoyasCatalogScreen(
         }
     }
 }
-
-
-// Componente JoyaCard extraído para mejor legibilidad
+// 🔹 Tarjeta de cada joya
 @Composable
 fun JoyaCard(joya: Joya, onClick: () -> Unit) {
     Card(
@@ -206,13 +203,14 @@ fun JoyaCard(joya: Joya, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(joya.nombre, fontWeight = FontWeight.Bold)
-            Text("S/${joya.precio}", color = MaterialTheme.colorScheme.primary)
+            Text("${joya.precio}", color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
-// Componente Diálogo del carrito extraído para mejor legibilidad
+// 🟣 Tarjeta de cada joya
+// Componente Diálogo del carrito
 @Composable
 fun CartDialog(
     carrito: List<Joya>,
@@ -231,7 +229,9 @@ fun CartDialog(
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("🛍️ Carrito de compras", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -244,7 +244,9 @@ fun CartDialog(
                         items(carrito.size) { index ->
                             val item = carrito[index]
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(item.nombre, maxLines = 1)
@@ -255,7 +257,7 @@ fun CartDialog(
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Total: S/${"%.2f".format(cartViewModel.total())}",
+                        "Total: ${"%.2f".format(cartViewModel.total())}",
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -287,5 +289,3 @@ fun CartDialog(
         }
     }
 }
-
-// Nota: Asegúrate de que las clases 'Joya' y 'CartViewModel' estén definidas en tu proyecto.

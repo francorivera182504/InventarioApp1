@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -64,9 +65,18 @@ fun HistorialScreen(onBack: () -> Unit, navController: NavController) {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item {
+                    // Calcula el promedio de calificaciones del usuario
+                    val calificaciones = historial.mapNotNull { (it["calificacion"] as? Long)?.toInt() }
+                    val calificacionesFiltradas = calificaciones.filter { it > 0 }
+                    val promedio = if (calificacionesFiltradas.isNotEmpty()) calificacionesFiltradas.average() else 0.0
+                    Text("⭐ Calificación promedio: ${String.format("%.1f", promedio)}")
+                }
+
                 items(historial.size) { index ->
                     val compra = historial[index]
                     var calificacion by remember { mutableStateOf((compra["calificacion"] as? Long)?.toInt() ?: 0) }
+                    var comentario by remember { mutableStateOf(compra["comentario"] as? String ?: "") }
 
                     Surface(
                         tonalElevation = 4.dp,
@@ -82,13 +92,19 @@ fun HistorialScreen(onBack: () -> Unit, navController: NavController) {
                             }
 
                             Spacer(modifier = Modifier.height(8.dp))
+                            Text("📦 Productos comprados:")
+                            val productos = compra["productos"] as? List<Map<String, Any>> ?: emptyList()
+                            productos.forEach { producto ->
+                                Text("• ${producto["nombre"]}: ${producto["precio"]}")
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text("⭐ Califica tu compra:")
                             Row {
                                 (1..5).forEach { star ->
                                     IconButton(
                                         onClick = {
                                             calificacion = star
-                                            // 🔥 Guardar calificación en Firestore
                                             usuario?.let {
                                                 db.collection("historial_compras")
                                                     .document(it.uid)
@@ -120,6 +136,58 @@ fun HistorialScreen(onBack: () -> Unit, navController: NavController) {
                                     }
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("💬 Comentario:")
+                            OutlinedTextField(
+                                value = comentario,
+                                onValueChange = { comentario = it },
+                                placeholder = { Text("Escribe un comentario") },
+                                trailingIcon = {
+                                    IconButton(onClick = {
+                                        usuario?.let { user ->
+                                            db.collection("historial_compras")
+                                                .document(user.uid)
+                                                .collection("compras")
+                                                .whereEqualTo("fecha", compra["fecha"])
+                                                .get()
+                                                .addOnSuccessListener { snapshot ->
+                                                    if (!snapshot.isEmpty) {
+                                                        val docId = snapshot.documents[0].id
+                                                        val compraDoc = snapshot.documents[0]
+
+                                                        // 🔹 Guardar comentario en historial
+                                                        db.collection("historial_compras")
+                                                            .document(user.uid)
+                                                            .collection("compras")
+                                                            .document(docId)
+                                                            .update("comentario", comentario)
+
+                                                        // 🔹 Guardar comentario global (basado en nombre de producto)
+                                                        val productos = compraDoc.get("productos") as? List<Map<String, Any>> ?: emptyList()
+                                                        val fecha = compraDoc.getString("fecha") ?: ""
+                                                        val calif = (compraDoc.getLong("calificacion") ?: 0L).toInt()
+
+                                                        for (producto in productos) {
+                                                            val productoId = producto["nombre"] ?: "sin_nombre"
+                                                            val comentarioData = hashMapOf(
+                                                                "userId" to user.uid,
+                                                                "productoId" to productoId,
+                                                                "comentario" to comentario,
+                                                                "calificacion" to calif,
+                                                                "fecha" to fecha
+                                                            )
+                                                            db.collection("comentarios").add(comentarioData)
+                                                        }
+                                                    }
+                                                }
+                                        }
+                                    }) {
+                                        Icon(Icons.Filled.Check, contentDescription = "Guardar comentario")
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }
